@@ -22,6 +22,24 @@ async function getSheetsClient() {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+// ── Retry helper for Gemini rate limits ─────────────────────────────
+async function generateWithRetry(prompt, maxRetries = 3) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await model.generateContent(prompt);
+      return result.response.text() || "";
+    } catch (err) {
+      const is429 = err.status === 429 || err.message?.includes("429");
+      if (!is429 || attempt === maxRetries) throw err;
+
+      // Parse retry delay from error or use exponential backoff
+      const delaySec = Math.min(10 * 2 ** attempt, 60);
+      console.log(`Rate limited — retrying in ${delaySec}s (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise((r) => setTimeout(r, delaySec * 1000));
+    }
+  }
+}
+
 // ── GET /api/preview — Read questions & answers from Sheet ──────────
 app.get("/api/preview", async (req, res) => {
   try {
@@ -78,11 +96,9 @@ app.post("/api/process", async (req, res) => {
       const { question, answer } = rows[i];
       send("progress", { current: i + 1, total: rows.length, question });
 
-      const result = await model.generateContent(
+      const processed = await generateWithRetry(
         `${prompt}\n\n---\nQuestion: ${question}\nAnswer: ${answer}`
       );
-
-      const processed = result.response.text() || "";
       results.push({ question, answer, processed });
     }
 
