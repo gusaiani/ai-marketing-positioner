@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+service-account-key.json
 
 # Google / GCP service account keys
 service-account-key.json
