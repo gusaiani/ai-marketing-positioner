@@ -1,6 +1,12 @@
-# Sheet → Gemini Processor
+# AI Marketing Positioner
 
-A web app that reads question/answer pairs from a Google Sheet, processes each answer through Gemini, and writes the results back to a new tab.
+A web app with two tools powered by Gemini:
+
+1. **Sheet Processor** (`index.html`) — Reads question/answer pairs from a Google Sheet, processes each answer through Gemini with a custom prompt, and writes the results back to a new tab in the same sheet.
+
+2. **Positioning Interview** (`interview.html`) — An AI-guided brand positioning interview conducted as a chat. Gemini acts as a senior brand strategist, walking you through a structured process (audience, category, differentiators, proof points, pricing perception, brand personality) and delivering a Brand Key, Positioning Statement, UVP, and decision log. The conversation can be copied to clipboard or saved directly to a new Google Sheet with organized tabs (CONTROLE, RESPOSTAS, SÍNTESE).
+
+![Positioning Interview screenshot](public/images/interview-screenshot.png)
 
 ## Setup
 
@@ -27,6 +33,7 @@ cp .env.example .env
 ```
 
 Edit `.env` and fill in:
+
 - `GEMINI_API_KEY` — your Gemini API key
 - `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` — path to the JSON file (default: `./service-account-key.json`)
 
@@ -41,11 +48,22 @@ Open http://localhost:3000
 
 ## How to use
 
+### Sheet Processor (home page)
+
 1. Paste your Google Sheet ID (from the URL: `docs.google.com/spreadsheets/d/{THIS_PART}/edit`)
 2. Click **Load preview** to see your questions & answers
 3. Write your prompt for Gemini (the question and answer are appended automatically)
 4. Click **Process all answers**
 5. Results are written to a new tab named `Processed_YYYY-MM-DD` in the same sheet
+
+### Positioning Interview (`/interview.html`)
+
+1. Open http://localhost:3000/interview.html
+2. The AI interviewer starts automatically and guides you through each stage of the positioning process
+3. Answer each question in the chat — the interviewer will probe for specifics and challenge vague answers
+4. At any point you can pause; the AI provides a Continuity Summary you can paste back later to resume
+5. When the interview is complete, you get a Brand Key, Positioning Statement, UVP, and decision log
+6. Click **Copiar conversa** to copy the full conversation, or **Salvar no Google Sheets** to create a new spreadsheet with all the structured data
 
 ## Deploying to Render.com
 
@@ -70,9 +88,9 @@ Ensure all changes are committed and pushed to your repository.
 
 In the Render dashboard, add these environment variables:
 
-| Key | Value | Description |
-|-----|-------|-------------|
-| `GEMINI_API_KEY` | Your Gemini API key | Get from https://aistudio.google.com/apikey |
+| Key                          | Value                                                  | Description                                                                              |
+| ---------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `GEMINI_API_KEY`             | Your Gemini API key                                    | Get from https://aistudio.google.com/apikey                                              |
 | `GOOGLE_SERVICE_ACCOUNT_KEY` | Entire JSON content from your service account key file | Copy the entire contents of your `service-account-key.json` file as a single-line string |
 
 **Important**: When setting `GOOGLE_SERVICE_ACCOUNT_KEY`, copy the entire JSON content including the curly braces. Render will handle it as a secure environment variable.
@@ -91,10 +109,10 @@ Click **Create Web Service** and Render will automatically deploy your applicati
 
 Your sheet should have **2 columns**:
 
-| Column A (Question)         | Column B (Answer)              |
-|-----------------------------|--------------------------------|
-| What is photosynthesis?     | It's when plants make food ... |
-| Explain Newton's 3rd law    | For every action there is ...  |
+| Column A (Question)      | Column B (Answer)              |
+| ------------------------ | ------------------------------ |
+| What is photosynthesis?  | It's when plants make food ... |
+| Explain Newton's 3rd law | For every action there is ...  |
 
 The first row is treated as a header and skipped.
 
