@@ -27,7 +27,7 @@ export default async function HistoryPage() {
     <div className="page-container">
       <div className="flex items-center justify-between mb-8">
         <h1 className="heading-lg">Historico</h1>
-        <Link href="/interview" className="btn-primary-sm">
+        <Link href="/interview/new" className="btn-primary-sm">
           Nova entrevista
         </Link>
       </div>
