@@ -1,38 +1,35 @@
-"use client";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+export default async function InterviewPage() {
+  const supabase = await createClient();
 
-export default function InterviewPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  useEffect(() => {
-    async function createInterview() {
-      try {
-        const res = await fetch("/api/interview", { method: "POST" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        router.replace(`/interview/${data.id}`);
-      } catch (err) {
-        console.error("Failed to create interview:", err);
-        setLoading(false);
-      }
-    }
-    createInterview();
-  }, [router]);
+  if (!user) redirect("/login");
 
-  if (!loading) {
-    return (
-      <div className="center-page">
-        <p className="error-text">Erro ao criar entrevista. Tente novamente.</p>
-      </div>
-    );
-  }
+  const { data: existing, error: fetchError } = await supabase
+    .from("interviews")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("status", "em_andamento")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  return (
-    <div className="center-page">
-      <p className="text-muted">Criando entrevista...</p>
-    </div>
-  );
+  if (fetchError) redirect("/history");
+
+  if (existing) redirect(`/interview/${existing.id}`);
+
+  const { data: interview, error: insertError } = await supabase
+    .from("interviews")
+    .insert({ user_id: user.id, title: "Nova entrevista", status: "em_andamento" })
+    .select("id")
+    .single();
+
+  if (insertError || !interview) redirect("/history");
+
+  redirect(`/interview/${interview.id}`);
 }
